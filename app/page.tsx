@@ -65,7 +65,7 @@ export default function Home() {
       color: 'white',
       minHeight: '100vh'
     }}>
-      <h1>🌱 Control de Cultivo IoT</h1>
+      <h1>🌱 Control de Cultivo IoT perrito</h1>
       
       <div style={{ marginBottom: '20px', fontSize: '1.2rem' }}>
         Estado del Sistema: <strong>{status}</strong>
