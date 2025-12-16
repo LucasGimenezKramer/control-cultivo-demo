@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import mqtt from 'mqtt';
 
 export default function Home() {
-  const [client, setClient] = useState(null);
+const [client, setClient] = useState<any>(null);
   const [status, setStatus] = useState('Desconectado 🔴');
   const [ledState, setLedState] = useState('DESCONOCIDO');
 
