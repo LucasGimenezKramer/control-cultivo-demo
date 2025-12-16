@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import mqtt from 'mqtt';
 
 export default function Home() {
-const [client, setClient] = useState<any>(null);
+  // CORRECCIÓN 1: Definimos que el cliente puede ser cualquier cosa (<any>)
+  const [client, setClient] = useState<any>(null);
   const [status, setStatus] = useState('Desconectado 🔴');
   const [ledState, setLedState] = useState('DESCONOCIDO');
 
-// Configuración de conexión (Tus datos de HiveMQ)
-  // AGREGAMOS ": any" AQUÍ 👇
+  // CORRECCIÓN 2: Definimos que las opciones son de tipo cualquiera (: any)
   const mqttOptions: any = {
-    protocol: 'wss', 
+    protocol: 'wss',
     hostname: '7d4a3fafd7334dec89328173dbc10c52.s1.eu.hivemq.cloud',
     port: 8884,
     path: '/mqtt',
@@ -26,7 +26,6 @@ const [client, setClient] = useState<any>(null);
     console.log('Intentando conectar a HiveMQ...');
     setStatus('Conectando... 🟡');
 
-    // Conexión
     const mqttClient = mqtt.connect(`wss://${mqttOptions.hostname}:${mqttOptions.port}/mqtt`, mqttOptions);
 
     mqttClient.on('connect', () => {
@@ -35,24 +34,24 @@ const [client, setClient] = useState<any>(null);
       setClient(mqttClient);
     });
 
-    mqttClient.on('error', (err) => {
+    // CORRECCIÓN 3 (Preventiva): Le decimos que 'err' puede ser cualquier cosa
+    mqttClient.on('error', (err: any) => {
       console.error('Error de conexión: ', err);
       setStatus('Error de conexión 🔴');
       mqttClient.end();
     });
 
-    // Cleanup al cerrar la app
     return () => {
       if (mqttClient) mqttClient.end();
     };
   }, []);
 
-  // Función para enviar comandos
-  const toggleLed = (command) => {
+  // CORRECCIÓN 4 (Tu error actual): Le decimos explícitamente que 'command' es un STRING
+  const toggleLed = (command: string) => {
     if (client) {
       const topic = 'planta/led/control';
       client.publish(topic, command);
-      setLedState(command); // Actualizamos visualmente
+      setLedState(command);
       console.log(`Enviado ${command} a ${topic}`);
     }
   };
