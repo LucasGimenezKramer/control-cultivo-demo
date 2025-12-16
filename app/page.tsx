@@ -8,14 +8,15 @@ export default function Home() {
   const [status, setStatus] = useState('Desconectado 🔴');
   const [ledState, setLedState] = useState('DESCONOCIDO');
 
-  // Configuración de conexión (Tus datos de HiveMQ)
-  const mqttOptions = {
-    protocol: 'wss', // Usamos WebSockets Secure
+// Configuración de conexión (Tus datos de HiveMQ)
+  // AGREGAMOS ": any" AQUÍ 👇
+  const mqttOptions: any = {
+    protocol: 'wss', 
     hostname: '7d4a3fafd7334dec89328173dbc10c52.s1.eu.hivemq.cloud',
-    port: 8884,      // Puerto WSS (No usar 8883 aquí)
-    path: '/mqtt',   // Ruta estándar para HiveMQ
+    port: 8884,
+    path: '/mqtt',
     username: 'esp32user',
-    password: 'ClaveSuperSegura123', // Tu contraseña
+    password: 'ClaveSuperSegura123',
     clean: true,
     connectTimeout: 4000,
     reconnectPeriod: 1000,
