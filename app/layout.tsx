@@ -24,6 +24,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+	<head>
+  		<link rel="apple-touch-icon" href="/lux-logo.png" />
+	</head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
