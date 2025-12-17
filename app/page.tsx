@@ -5,7 +5,6 @@ import mqtt from 'mqtt';
 
 export default function Home() {
   // --- ESTADOS ---
-  const [isLoading, setIsLoading] = useState(true);
   const [client, setClient] = useState<any>(null);
   const [status, setStatus] = useState('Desconectado 🔴');
   const [currentScreen, setCurrentScreen] = useState('MAIN');
@@ -49,9 +48,6 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Splash Screen dura 2.5 seg para asegurar que cargue estilo
-    setTimeout(() => setIsLoading(false), 2500);
-
     const mqttClient = mqtt.connect(`wss://${mqttOptions.hostname}:${mqttOptions.port}/mqtt`, mqttOptions);
 
     mqttClient.on('connect', () => {
@@ -66,30 +62,24 @@ export default function Home() {
   const triggerToastAndReturn = (msg: string) => {
     setToastMsg(msg);
     setShowToast(true);
-    
-    // Ocultar toast a los 2s
     setTimeout(() => setShowToast(false), 2000);
-    
-    // Volver al menú principal a los 1.5s
     setTimeout(() => setCurrentScreen('MAIN'), 1500);
   };
 
-  // --- FUNCIONES DE ENVÍO ---
+  // --- FUNCIONES LÓGICAS ---
   
-  // Nota: Ahora esta función NO envía, solo actualiza visualmente (para sliders)
   const updateChannelLocal = (idx: number, val: number) => {
     const newChannels = [...channels];
     newChannels[idx] = val;
     setChannels(newChannels);
   };
 
-  // Esta función SÍ envía (se usa en el botón Guardar y en Presets)
-  const sendEspectroFinal = (valuesToSend: number[]) => {
-    setChannels(valuesToSend); // Actualizamos visualmente por si vino de un preset
+  // Función unificada de envío (se usa SOLO al apretar Guardar)
+  const sendEspectroFinal = () => {
     if (client) {
       const payload = {
-        ch0: valuesToSend[0], ch1: valuesToSend[1], ch2: valuesToSend[2], 
-        ch3: valuesToSend[3], ch4: valuesToSend[4]
+        ch0: channels[0], ch1: channels[1], ch2: channels[2], 
+        ch3: channels[3], ch4: channels[4]
       };
       client.publish('planta/cmd/luces', JSON.stringify(payload));
       triggerToastAndReturn("Espectro actualizado ✅");
@@ -110,6 +100,14 @@ export default function Home() {
     }
   };
 
+  // --- HELPER PARA SLIDER CON DEGRADADO ---
+  // Genera el estilo CSS dinámico para pintar el slider hasta el punto actual
+  const getSliderStyle = (value: number) => {
+    return {
+      background: `linear-gradient(to right, #D500F9 0%, #651FFF ${value}%, #333 ${value}%, #333 100%)`
+    };
+  };
+
   // --- COMPONENTES VISUALES ---
 
   const MenuButton = ({ label, icon, onClick, secondary = false }: any) => (
@@ -121,15 +119,6 @@ export default function Home() {
 
   // --- RENDERIZADO ---
 
-  const renderSplashScreen = () => (
-    <div className="splash-container">
-      <div className="splash-content">
-        <img src="/lux-logo.png" alt="Lux Logo" className="splash-logo pulse" />
-        <h2 style={{marginTop: 20, color: '#fff', fontWeight: 300}}>Cargando sistema...</h2>
-      </div>
-    </div>
-  );
-
   const renderDashboard = () => (
     <div className="card animate-fade-in">
       <div className="header-logo">
@@ -137,6 +126,7 @@ export default function Home() {
         <p className="sub-title">Sistema de Control Inteligente</p>
       </div>
       
+      {/* Logo Agrandado */}
       <img src="/lux-logo.png" alt="Lux Logo" className="dashboard-logo" />
 
       <div className="status-box">
@@ -152,13 +142,17 @@ export default function Home() {
   );
 
   const renderEspectro = () => (
-    <div className="card animate-slide-up compact-mode">
+    <div className="card animate-slide-up">
       <button className="back-btn" onClick={() => setCurrentScreen('MAIN')}>⬅ Volver</button>
       <h2 className="section-title">💡 Control Espectro</h2>
       
       <div className="preset-scroll">
         {presets.map((preset, idx) => (
-          <button key={idx} className="preset-chip" onClick={() => sendEspectroFinal(preset.values)}>
+          <button 
+            key={idx} 
+            className="preset-chip" 
+            onClick={() => setChannels(preset.values)} // Solo actualiza visualmente
+          >
             {preset.name}
           </button>
         ))}
@@ -171,17 +165,19 @@ export default function Home() {
               <span>{channelNames[idx]}</span>
               <span className="slider-value">{val}%</span>
             </div>
+            {/* Slider con estilo dinámico para el relleno */}
             <input 
               type="range" min="0" max="100" value={val}
               onChange={(e) => updateChannelLocal(idx, parseInt(e.target.value))}
               className="lux-slider"
+              style={getSliderStyle(val)}
             />
           </div>
         ))}
       </div>
 
-      {/* Botón Nuevo para Guardar Espectro */}
-      <button className="save-btn-large" onClick={() => sendEspectroFinal(channels)}>GUARDAR ESPECTRO</button>
+      {/* Botón único de envío */}
+      <button className="save-btn-large" onClick={sendEspectroFinal}>GUARDAR ESPECTRO</button>
     </div>
   );
 
@@ -214,6 +210,7 @@ export default function Home() {
       <button className="back-btn" onClick={() => setCurrentScreen('MAIN')}>⬅ Volver</button>
       <h2 className="section-title">⚙️ Ajustes</h2>
 
+      {/* Reduje márgenes aquí para agrupar mejor */}
       <div className="switch-container-large">
         <div className="switch-row-large">
           <label>🌅 Simulación Amanecer</label>
@@ -231,7 +228,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="input-group-large" style={{marginTop: 20}}>
+      <div className="input-group-large compact-input-group">
         <label>Tiempo de Progreso (min)</label>
         <input type="number" className="number-input" value={ajustes.progreso} onChange={(e) => setAjustes({...ajustes, progreso: parseInt(e.target.value)})} />
       </div>
@@ -240,36 +237,27 @@ export default function Home() {
     </div>
   );
 
-  if (isLoading) return renderSplashScreen();
-
   return (
     <div className="app-container">
       <style jsx global>{`
         body { margin: 0; background-color: #000; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* SPLASH SCREEN FIXED */
-        .splash-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .splash-content { display: flex; flex-direction: column; align-items: center; }
-        .splash-logo { width: 180px; height: auto; display: block; }
-        .pulse { animation: pulse 2s infinite ease-in-out; }
-        @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.6; transform: scale(0.95); } }
-
-        .app-container { min-height: 100vh; display: flex; justify-content: center; padding: 15px; background: radial-gradient(circle at top, #1a1a1a, #000); box-sizing: border-box; }
+        .app-container { min-height: 100vh; display: flex; justify-content: center; padding: 20px; background: radial-gradient(circle at top, #1a1a1a, #000); box-sizing: border-box; }
         .card { width: 100%; max-width: 400px; display: flex; flex-direction: column; position: relative; }
         
         /* HEADER & DASHBOARD */
-        .header-logo { text-align: center; margin-top: 10px; margin-bottom: 15px; }
+        .header-logo { text-align: center; margin-top: 10px; margin-bottom: 10px; }
         .main-title { 
           font-size: 1.8rem; margin: 0; font-weight: 800; letter-spacing: 1px;
           background: linear-gradient(to right, #D500F9, #651FFF); -webkit-background-clip: text; color: transparent;
         }
         .sub-title { color: #ccc; font-size: 1.2rem; margin-top: 5px; font-weight: 300; }
-        .dashboard-logo { width: 140px; margin: 0 auto 15px; display: block; }
+        .dashboard-logo { width: 170px; margin: 0 auto 15px; display: block; } /* Logo más grande */
         
         .status-box { background: #1a1a1a; padding: 8px 16px; border-radius: 20px; display: table; margin: 0 auto 20px; border: 1px solid #333; color: #fff; font-size: 0.9rem; }
         .dot { height: 10px; width: 10px; background-color: #00E676; border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: 0 0 8px #00E676; }
 
-        /* MENÚ BUTTONS COMPACTOS */
+        /* MENÚ BUTTONS */
         .menu-grid { display: flex; flex-direction: column; gap: 12px; }
         .menu-btn {
           padding: 18px 20px; border: none; border-radius: 16px; color: white; font-weight: 700; font-size: 1.2rem;
@@ -284,26 +272,43 @@ export default function Home() {
         .section-title { font-size: 2rem; margin-bottom: 20px; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         .back-btn { background: #222; padding: 8px 14px; border-radius: 8px; border: none; color: #aaa; font-size: 0.9rem; margin-bottom: 10px; align-self: flex-start; }
 
-        /* ESPECTRO COMPACTO */
-        .compact-mode .slider-group { margin-bottom: 0; }
+        /* SLIDERS CON DEGRADADO (FIX VISUAL) */
         .sliders-container { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
         .slider-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 1rem; color: #ddd; }
-        .lux-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 5px; background: #333; }
-        .lux-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #E040FB; border: 2px solid white; box-shadow: 0 0 10px #E040FB; }
+        
+        .lux-slider { 
+          -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; 
+          background: #333; /* Fallback */
+          outline: none; 
+        }
+        .lux-slider::-webkit-slider-thumb { 
+          -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; 
+          background: #fff; /* Thumb blanco para contraste con el degradado */
+          border: 2px solid #D500F9; 
+          box-shadow: 0 0 10px rgba(213, 0, 249, 0.5); 
+          cursor: pointer; 
+          margin-top: 0px; 
+        }
 
         /* PRESETS */
         .preset-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; margin-bottom: 10px; }
         .preset-chip { background: #1a1a1a; border: 1px solid #E040FB; color: #fff; padding: 10px 18px; border-radius: 20px; white-space: nowrap; font-size: 0.95rem; font-weight: 600; }
+        .preset-chip:active { background: #E040FB; color: black; }
 
-        /* INPUTS Y BOTONES GUARDAR */
-        .input-container-large { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        /* INPUTS - MARGEN FIX */
+        .input-container-large { 
+          display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; 
+          width: 100%; box-sizing: border-box; /* CLAVE: Para que el padding no rompa el ancho */
+        }
+        .input-group-large { width: 100%; box-sizing: border-box; }
         .input-group-large label { display: block; color: #bbb; margin-bottom: 8px; font-size: 1rem; }
         .input-group-large input { 
           width: 100%; padding: 16px; background: #1a1a1a; border: 1px solid #444; border-radius: 10px; 
-          color: white; font-size: 1.3rem; box-sizing: border-box; 
+          color: white; font-size: 1.3rem; box-sizing: border-box; /* CLAVE */
         }
         
-        .switch-container-large { display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px; }
+        /* AJUSTES - ESPACIADO FIX */
+        .switch-container-large { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; } /* Menos gap */
         .switch-row-large { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #333; font-size: 1.1rem; }
         .switch-large { position: relative; display: inline-block; width: 60px; height: 32px; }
         .switch-large input { opacity: 0; width: 0; height: 0; }
@@ -312,13 +317,16 @@ export default function Home() {
         input:checked + .slider-switch-large { background-color: #E040FB; }
         input:checked + .slider-switch-large:before { transform: translateX(28px); }
 
+        .compact-input-group { margin-top: 5px; margin-bottom: 20px; } /* Acercado a switches, separado del botón */
+
         .save-btn-large {
           margin-top: 10px; width: 100%; padding: 18px; background: linear-gradient(135deg, #D500F9, #651FFF);
           border: none; border-radius: 12px; color: white; font-weight: 800; font-size: 1.2rem; letter-spacing: 0.5px;
           box-shadow: 0 4px 15px rgba(224, 64, 251, 0.3);
+          box-sizing: border-box;
         }
 
-        /* TOAST COMPACTO */
+        /* TOAST */
         .toast { 
           position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
           background: #111; border: 1px solid #E040FB; padding: 10px 20px; border-radius: 30px; 
