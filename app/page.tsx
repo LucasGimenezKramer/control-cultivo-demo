@@ -120,7 +120,7 @@ export default function Home() {
         <p className="sub-title">Sistema de Control Inteligente</p>
       </div>
       
-      {/* Logo: CSS ajustado para mejorar renderizado */}
+      {/* Logo ajustado a 140px */}
       <div className="logo-container">
         <img src="/lux-logo.png" alt="Lux Logo" className="dashboard-logo" />
       </div>
@@ -223,6 +223,7 @@ export default function Home() {
 
       <div className="input-group-large compact-input-group">
         <label>Tiempo de Progreso (min)</label>
+        {/* Clase number-input con padding reducido */}
         <input type="number" className="number-input" value={ajustes.progreso} onChange={(e) => setAjustes({...ajustes, progreso: parseInt(e.target.value)})} />
       </div>
 
@@ -233,7 +234,7 @@ export default function Home() {
   return (
     <div className="app-container">
       <style jsx global>{`
-        /* RESET UNIVERSAL: Esto soluciona el problema de los anchos */
+        /* RESET UNIVERSAL */
         * { box-sizing: border-box; }
         
         body { margin: 0; background-color: #000; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -249,13 +250,11 @@ export default function Home() {
         }
         .sub-title { color: #ccc; font-size: 1.2rem; margin-top: 5px; font-weight: 300; }
         
-        /* LOGO */
+        /* LOGO FIXED */
         .logo-container { display: flex; justify-content: center; margin-bottom: 15px; }
         .dashboard-logo { 
-            width: auto; height: auto; 
-            max-width: 180px; max-height: 120px; /* Limita el tamaño pero mantiene proporción */
+            width: 140px; height: auto; /* Ancho fijo solicitado */
             display: block; 
-            image-rendering: -webkit-optimize-contrast; /* Ayuda un poco a la nitidez */
         }
         
         .status-box { background: #1a1a1a; padding: 8px 16px; border-radius: 20px; display: table; margin: 0 auto 20px; border: 1px solid #333; color: #fff; font-size: 0.9rem; }
@@ -264,7 +263,7 @@ export default function Home() {
         /* MENÚS */
         .menu-grid { display: flex; flex-direction: column; gap: 12px; }
         .menu-btn {
-          width: 100%; /* Asegura ancho total */
+          width: 100%;
           padding: 18px 20px; border: none; border-radius: 16px; color: white; font-weight: 700; font-size: 1.2rem;
           display: flex; align-items: center; justify-content: start; cursor: pointer;
           box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: transform 0.1s;
@@ -288,17 +287,22 @@ export default function Home() {
         .preset-chip { background: #1a1a1a; border: 1px solid #E040FB; color: #fff; padding: 10px 18px; border-radius: 20px; white-space: nowrap; font-size: 0.95rem; font-weight: 600; }
         .preset-chip:active { background: #E040FB; color: black; }
 
-        /* INPUTS Y LAYOUT CORREGIDO */
+        /* INPUTS - AJUSTE ANCHO */
         .input-container-large { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; width: 100%; }
         .input-group-large { width: 100%; }
         .input-group-large label { display: block; color: #bbb; margin-bottom: 8px; font-size: 1rem; }
         
         .input-group-large input { 
-          width: 100%; /* Ocupa todo el contenedor */
+          width: 100%; 
           padding: 16px; 
           background: #1a1a1a; border: 1px solid #444; border-radius: 10px; 
           color: white; font-size: 1.3rem; 
-          margin: 0; /* Elimina márgenes default del navegador */
+          margin: 0;
+        }
+
+        /* INPUT ESPECÍFICO DE PROGRESO (Más bajo) */
+        input.number-input {
+          padding: 10px 16px; /* Altura reducida */
         }
         
         .switch-container-large { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; }
