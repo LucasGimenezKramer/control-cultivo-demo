@@ -244,9 +244,22 @@ export default function Home() {
       </div>
 
       <div className="input-group-large compact-input-group">
-        <label>Tiempo de Progreso (min)</label>
-        <input type="number" className="number-input" value={ajustes.progreso} onChange={(e) => setAjustes({...ajustes, progreso: parseInt(e.target.value)})} />
-      </div>
+              <label>Tiempo de Progreso (min)</label>
+              <input 
+                type="number" 
+                className="number-input" 
+                value={ajustes.progreso} 
+                min="0"
+                max="99"
+                onChange={(e) => {
+                  let val = parseInt(e.target.value);
+                  if (isNaN(val)) val = 0;
+                  if (val < 0) val = 0;
+                  if (val > 99) val = 99; // <--- AQUÍ ESTÁ EL LÍMITE
+                  setAjustes({...ajustes, progreso: val});
+                }} 
+              />
+        </div>
 
       <button className="save-btn-large" onClick={sendAjustes}>GUARDAR AJUSTES</button>
     </div>
