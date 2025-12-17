@@ -66,15 +66,13 @@ export default function Home() {
     setTimeout(() => setCurrentScreen('MAIN'), 1500);
   };
 
-  // --- FUNCIONES LÓGICAS ---
-  
+  // --- LÓGICA ---
   const updateChannelLocal = (idx: number, val: number) => {
     const newChannels = [...channels];
     newChannels[idx] = val;
     setChannels(newChannels);
   };
 
-  // Función unificada de envío (se usa SOLO al apretar Guardar)
   const sendEspectroFinal = () => {
     if (client) {
       const payload = {
@@ -100,15 +98,13 @@ export default function Home() {
     }
   };
 
-  // --- HELPER PARA SLIDER CON DEGRADADO ---
-  // Genera el estilo CSS dinámico para pintar el slider hasta el punto actual
   const getSliderStyle = (value: number) => {
     return {
       background: `linear-gradient(to right, #D500F9 0%, #651FFF ${value}%, #333 ${value}%, #333 100%)`
     };
   };
 
-  // --- COMPONENTES VISUALES ---
+  // --- RENDERIZADO ---
 
   const MenuButton = ({ label, icon, onClick, secondary = false }: any) => (
     <button onClick={onClick} className={`menu-btn ${secondary ? 'secondary' : 'primary'}`}>
@@ -117,8 +113,6 @@ export default function Home() {
     </button>
   );
 
-  // --- RENDERIZADO ---
-
   const renderDashboard = () => (
     <div className="card animate-fade-in">
       <div className="header-logo">
@@ -126,8 +120,10 @@ export default function Home() {
         <p className="sub-title">Sistema de Control Inteligente</p>
       </div>
       
-      {/* Logo Agrandado */}
-      <img src="/lux-logo.png" alt="Lux Logo" className="dashboard-logo" />
+      {/* Logo: CSS ajustado para mejorar renderizado */}
+      <div className="logo-container">
+        <img src="/lux-logo.png" alt="Lux Logo" className="dashboard-logo" />
+      </div>
 
       <div className="status-box">
         <span className="dot"></span> {status}
@@ -151,7 +147,7 @@ export default function Home() {
           <button 
             key={idx} 
             className="preset-chip" 
-            onClick={() => setChannels(preset.values)} // Solo actualiza visualmente
+            onClick={() => setChannels(preset.values)}
           >
             {preset.name}
           </button>
@@ -165,7 +161,6 @@ export default function Home() {
               <span>{channelNames[idx]}</span>
               <span className="slider-value">{val}%</span>
             </div>
-            {/* Slider con estilo dinámico para el relleno */}
             <input 
               type="range" min="0" max="100" value={val}
               onChange={(e) => updateChannelLocal(idx, parseInt(e.target.value))}
@@ -176,7 +171,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Botón único de envío */}
       <button className="save-btn-large" onClick={sendEspectroFinal}>GUARDAR ESPECTRO</button>
     </div>
   );
@@ -210,7 +204,6 @@ export default function Home() {
       <button className="back-btn" onClick={() => setCurrentScreen('MAIN')}>⬅ Volver</button>
       <h2 className="section-title">⚙️ Ajustes</h2>
 
-      {/* Reduje márgenes aquí para agrupar mejor */}
       <div className="switch-container-large">
         <div className="switch-row-large">
           <label>🌅 Simulación Amanecer</label>
@@ -240,26 +233,38 @@ export default function Home() {
   return (
     <div className="app-container">
       <style jsx global>{`
+        /* RESET UNIVERSAL: Esto soluciona el problema de los anchos */
+        * { box-sizing: border-box; }
+        
         body { margin: 0; background-color: #000; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        .app-container { min-height: 100vh; display: flex; justify-content: center; padding: 20px; background: radial-gradient(circle at top, #1a1a1a, #000); box-sizing: border-box; }
+        .app-container { min-height: 100vh; display: flex; justify-content: center; padding: 20px; background: radial-gradient(circle at top, #1a1a1a, #000); }
         .card { width: 100%; max-width: 400px; display: flex; flex-direction: column; position: relative; }
         
-        /* HEADER & DASHBOARD */
+        /* HEADER */
         .header-logo { text-align: center; margin-top: 10px; margin-bottom: 10px; }
         .main-title { 
           font-size: 1.8rem; margin: 0; font-weight: 800; letter-spacing: 1px;
           background: linear-gradient(to right, #D500F9, #651FFF); -webkit-background-clip: text; color: transparent;
         }
         .sub-title { color: #ccc; font-size: 1.2rem; margin-top: 5px; font-weight: 300; }
-        .dashboard-logo { width: 170px; margin: 0 auto 15px; display: block; } /* Logo más grande */
+        
+        /* LOGO */
+        .logo-container { display: flex; justify-content: center; margin-bottom: 15px; }
+        .dashboard-logo { 
+            width: auto; height: auto; 
+            max-width: 180px; max-height: 120px; /* Limita el tamaño pero mantiene proporción */
+            display: block; 
+            image-rendering: -webkit-optimize-contrast; /* Ayuda un poco a la nitidez */
+        }
         
         .status-box { background: #1a1a1a; padding: 8px 16px; border-radius: 20px; display: table; margin: 0 auto 20px; border: 1px solid #333; color: #fff; font-size: 0.9rem; }
         .dot { height: 10px; width: 10px; background-color: #00E676; border-radius: 50%; display: inline-block; margin-right: 6px; box-shadow: 0 0 8px #00E676; }
 
-        /* MENÚ BUTTONS */
+        /* MENÚS */
         .menu-grid { display: flex; flex-direction: column; gap: 12px; }
         .menu-btn {
+          width: 100%; /* Asegura ancho total */
           padding: 18px 20px; border: none; border-radius: 16px; color: white; font-weight: 700; font-size: 1.2rem;
           display: flex; align-items: center; justify-content: start; cursor: pointer;
           box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: transform 0.1s;
@@ -268,47 +273,35 @@ export default function Home() {
         .menu-btn.primary { background: linear-gradient(135deg, #8E24AA, #D500F9); }
         .menu-btn.secondary { background: #1f1f1f; border: 1px solid #333; }
 
-        /* SECCIONES INTERNAS */
+        /* SECCIONES */
         .section-title { font-size: 2rem; margin-bottom: 20px; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         .back-btn { background: #222; padding: 8px 14px; border-radius: 8px; border: none; color: #aaa; font-size: 0.9rem; margin-bottom: 10px; align-self: flex-start; }
 
-        /* SLIDERS CON DEGRADADO (FIX VISUAL) */
+        /* SLIDERS */
         .sliders-container { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
         .slider-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 1rem; color: #ddd; }
-        
-        .lux-slider { 
-          -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; 
-          background: #333; /* Fallback */
-          outline: none; 
-        }
-        .lux-slider::-webkit-slider-thumb { 
-          -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; 
-          background: #fff; /* Thumb blanco para contraste con el degradado */
-          border: 2px solid #D500F9; 
-          box-shadow: 0 0 10px rgba(213, 0, 249, 0.5); 
-          cursor: pointer; 
-          margin-top: 0px; 
-        }
+        .lux-slider { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 5px; background: #333; outline: none; }
+        .lux-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2px solid #D500F9; box-shadow: 0 0 10px rgba(213, 0, 249, 0.5); cursor: pointer; }
 
         /* PRESETS */
         .preset-scroll { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; margin-bottom: 10px; }
         .preset-chip { background: #1a1a1a; border: 1px solid #E040FB; color: #fff; padding: 10px 18px; border-radius: 20px; white-space: nowrap; font-size: 0.95rem; font-weight: 600; }
         .preset-chip:active { background: #E040FB; color: black; }
 
-        /* INPUTS - MARGEN FIX */
-        .input-container-large { 
-          display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; 
-          width: 100%; box-sizing: border-box; /* CLAVE: Para que el padding no rompa el ancho */
-        }
-        .input-group-large { width: 100%; box-sizing: border-box; }
+        /* INPUTS Y LAYOUT CORREGIDO */
+        .input-container-large { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; width: 100%; }
+        .input-group-large { width: 100%; }
         .input-group-large label { display: block; color: #bbb; margin-bottom: 8px; font-size: 1rem; }
+        
         .input-group-large input { 
-          width: 100%; padding: 16px; background: #1a1a1a; border: 1px solid #444; border-radius: 10px; 
-          color: white; font-size: 1.3rem; box-sizing: border-box; /* CLAVE */
+          width: 100%; /* Ocupa todo el contenedor */
+          padding: 16px; 
+          background: #1a1a1a; border: 1px solid #444; border-radius: 10px; 
+          color: white; font-size: 1.3rem; 
+          margin: 0; /* Elimina márgenes default del navegador */
         }
         
-        /* AJUSTES - ESPACIADO FIX */
-        .switch-container-large { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; } /* Menos gap */
+        .switch-container-large { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; }
         .switch-row-large { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #333; font-size: 1.1rem; }
         .switch-large { position: relative; display: inline-block; width: 60px; height: 32px; }
         .switch-large input { opacity: 0; width: 0; height: 0; }
@@ -317,13 +310,13 @@ export default function Home() {
         input:checked + .slider-switch-large { background-color: #E040FB; }
         input:checked + .slider-switch-large:before { transform: translateX(28px); }
 
-        .compact-input-group { margin-top: 5px; margin-bottom: 20px; } /* Acercado a switches, separado del botón */
+        .compact-input-group { margin-top: 5px; margin-bottom: 20px; }
 
         .save-btn-large {
-          margin-top: 10px; width: 100%; padding: 18px; background: linear-gradient(135deg, #D500F9, #651FFF);
+          width: 100%; margin-top: 10px; padding: 18px; 
+          background: linear-gradient(135deg, #D500F9, #651FFF);
           border: none; border-radius: 12px; color: white; font-weight: 800; font-size: 1.2rem; letter-spacing: 0.5px;
           box-shadow: 0 4px 15px rgba(224, 64, 251, 0.3);
-          box-sizing: border-box;
         }
 
         /* TOAST */
